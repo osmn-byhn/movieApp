@@ -26,7 +26,6 @@ app.listen(process.env.PORT, () => {
   console.log("server running on: ", process.env.PORT);
 })
 const User = require("./models/user")
-const Post = require("./models/post")
 const secretKey = "secretKey"
 app.post("/register", async (req, res) => {
   try {
