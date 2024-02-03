@@ -1,16 +1,85 @@
-import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar } from 'react-native';
-import { MaterialIcons, Ionicons, MaterialCommunityIcons  } from '@expo/vector-icons';
-import React from 'react';
+import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Dimensions } from 'react-native';
+import { MaterialIcons, Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 const RegisterScreen = () => {
+  const [fullname, setFullname] = useState("")
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [selectedImage, setSelectedImage] = useState('');
+  const [base64Value, setBase64Value] = useState('');
   const navigation = useNavigation()
+
+  const pickImage = async () => {
+  try {
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 4], // Bu satırı geçici olarak yorum satırı yapabilir veya kaldırabilirsiniz.
+        quality: 1,
+      });
+      
+    console.log(result.assets[0].uri);
+    if (result.assets[0].uri) {
+        console.log(result.assets[0].uri);
+        try {
+          const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          setSelectedImage(base64)
+          setBase64Value("data:image/jpeg;base64," + base64);
+          console.log(base64);
+        } catch (base64Error) {
+          console.error('Error converting to base64:', base64Error);
+        }
+    }
+      
+  } catch (error) {
+    console.error('Error picking image:', error);
+  }
+};
+
+
+  const handleRegister = async () => {
+    const user = {
+      fullName: fullname,
+      username: username,
+      email: email,
+      password: password,
+      profilePicture: base64Value
+    };
+  
+    try {
+      const response = await axios.post("http://localhost:3000/register", user);
+      console.log(response);
+      Alert.alert("Registration successful. You have been registered successfully");
+      setFullname("");
+      setEmail("");
+      setUsername("")
+      setPassword("");
+    } catch (error) {
+      Alert.alert("Registration failed. An error occurred during registration");
+      console.log("error: ", error);
+    }
+  };
   return (
     <ImageBackground source={require('../assets/clapperboard.jpg')} style={styles.backgroundImage} blurRadius={4}>
       <StatusBar backgroundColor="#ff0000" barStyle="light-content" />
       <View style={styles.overlay}>
         <Text style={styles.text}>Register to MovieApp</Text>
-        <View style={{backgroundColor: "#ea1124", width: 100, height: 100, justifyContent: 'center', alignItems: 'center', borderRadius: 100, marginVertical:15}}>
-            <MaterialIcons name="add-a-photo" size={33} color="white" />
+        <View style={{width: 100, height: 100, justifyContent: 'center', alignItems: 'center', borderRadius: 100, marginVertical:15}}>
+        {base64Value ? (
+            <Image source={{ uri: base64Value }} style={{ width: 100, height: 100, borderRadius: 100 }} />
+        ) : (
+            <Pressable onPress={pickImage}>
+                <MaterialIcons name="add-a-photo" size={33} color="white" style={{ backgroundColor: "#ea1124", padding: 35, borderRadius: 100 }} />
+            </Pressable>
+        )}
+
         </View>
         <View style={{width: 350, flexDirection: "row", alignItems: "center", gap: 10, borderColor: "#d0d0d0", borderWidth: 1, paddingVertical:5, borderRadius:5, marginVertical: 20}}>
           <Ionicons name="person" size={24} color="white"  style={{marginLeft:15}} />
