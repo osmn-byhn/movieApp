@@ -1,4 +1,4 @@
-import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Dimensions } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Dimensions, Alert } from 'react-native';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -42,30 +42,28 @@ const RegisterScreen = () => {
     console.error('Error picking image:', error);
   }
 };
-
-
-  const handleRegister = async () => {
-    const user = {
-      fullName: fullname,
-      username: username,
-      email: email,
-      password: password,
-      profilePicture: base64Value
-    };
-  
-    try {
-      const response = await axios.post("http://localhost:3000/register", user);
-      console.log(response);
-      Alert.alert("Registration successful. You have been registered successfully");
-      setFullname("");
-      setEmail("");
-      setUsername("")
-      setPassword("");
-    } catch (error) {
-      Alert.alert("Registration failed. An error occurred during registration");
-      console.log("error: ", error);
-    }
+const handleRegister = async () => {
+  const user = {
+    fullName: fullname,
+    username: username,
+    email: email,
+    password: password,
+    profilePicture: base64Value
   };
+  console.log(base64Value);
+  try {
+    const response = await axios.post("http://192.168.30.159:3000/register", user);
+    console.log(response);
+    Alert.alert("Registration successful. You have been registered successfully");
+    setFullname("");
+    setEmail("");
+    setUsername("")
+    setPassword("");
+  } catch (error) {
+    Alert.alert("Registration failed. An error occurred during registration");
+    console.log("error: ", error);
+  }
+};
   return (
     <ImageBackground source={require('../assets/clapperboard.jpg')} style={styles.backgroundImage} blurRadius={4}>
       <StatusBar backgroundColor="#ff0000" barStyle="light-content" />
@@ -79,26 +77,25 @@ const RegisterScreen = () => {
                 <MaterialIcons name="add-a-photo" size={33} color="white" style={{ backgroundColor: "#ea1124", padding: 35, borderRadius: 100 }} />
             </Pressable>
         )}
-
         </View>
         <View style={{width: 350, flexDirection: "row", alignItems: "center", gap: 10, borderColor: "#d0d0d0", borderWidth: 1, paddingVertical:5, borderRadius:5, marginVertical: 20}}>
           <Ionicons name="person" size={24} color="white"  style={{marginLeft:15}} />
-          <TextInput  style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your fullname' placeholderTextColor='white'/>
+          <TextInput value={fullname} onChangeText={(text) => setFullname(text)} style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your fullname' placeholderTextColor='white'/>
         </View>
         <View style={{width: 350, flexDirection: "row", alignItems: "center", gap: 10, borderColor: "#d0d0d0", borderWidth: 1, paddingVertical:5, borderRadius:5, marginVertical: 20}}>
           <MaterialIcons name="alternate-email" size={24} color="white"  style={{marginLeft:15}} />
-          <TextInput  style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your username' placeholderTextColor='white'/>
+          <TextInput value={username} onChangeText={(text) => setUsername(text)} style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your username' placeholderTextColor='white'/>
         </View>
         <View style={{width: 350, flexDirection: "row", alignItems: "center", gap: 10, borderColor: "#d0d0d0", borderWidth: 1, paddingVertical:5, borderRadius:5, marginVertical: 20}}>
           <MaterialCommunityIcons name="email" size={24} color="white"  style={{marginLeft:15}} />
-          <TextInput  style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your email address' placeholderTextColor='white'/>
+          <TextInput  value={email} onChangeText={(text) => setEmail(text)} style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your email address' placeholderTextColor='white'/>
         </View>
         <View style={{width: 350, flexDirection: "row", alignItems: "center", gap: 10, borderColor: "#d0d0d0", borderWidth: 1, paddingVertical:5, borderRadius:5, marginVertical: 20}}>
           <MaterialIcons name="vpn-key" size={24} color="white" style={{marginLeft:15}} />
-          <TextInput  style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your password' placeholderTextColor='white'/>
+          <TextInput value={password} onChangeText={(text) => setPassword(text)} style={{width:300, color: "white", marginVertical: 10, paddingTop: 2}} placeholder='Enter your password' placeholderTextColor='white'/>
         </View>
         <View style={{width: 350}}>
-          <Pressable style={{ backgroundColor: "#ea1124", marginVertical: 10, borderRadius: 10}}>
+          <Pressable onPress={handleRegister} style={{ backgroundColor: "#ea1124", marginVertical: 10, borderRadius: 10}}>
             <Text style={{color: "white", textAlign: "center", paddingVertical:20, fontSize:18}}>Register</Text>
           </Pressable>
         </View>

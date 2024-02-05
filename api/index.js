@@ -29,7 +29,7 @@ const User = require("./models/user")
 const secretKey = "secretKey"
 app.post("/register", async (req, res) => {
   try {
-    const { fullName, username, email, password } = req.body;
+    const { fullName, username, email, password, profilePicture } = req.body;
     const existingUser = await User.findOne({ email })
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" })
@@ -39,7 +39,7 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Username already registered" })
     }
     
-    const newUser = new User({ fullName, username, email, password });
+    const newUser = new User({ fullName, username, email, password, profilePicture });
     console.log("username: ", newUser);
     newUser.verificationToken = crypto.randomBytes(20).toString("hex")
     await newUser.save();
@@ -54,7 +54,7 @@ app.post("/register", async (req, res) => {
 
 app.put("/edit-profile/:userId", async (req, res) => {
   try {
-    const { fullName, username, password, biography, profilePicture } = req.body;
+    const { fullName, username, password, profilePicture } = req.body;
     const userId = req.params.userId;
     const decodedUserId = jwt.verify(userId, secretKey);
     const updatedUser = await User.findByIdAndUpdate(
