@@ -52,7 +52,7 @@ const handleRegister = async () => {
   };
   console.log(base64Value);
   try {
-    const response = await axios.post("http://192.168.30.159:3000/register", user);
+    const response = await axios.post("http://192.168.1.40:3000/register", user);
     console.log(response);
     Alert.alert("Registration successful. You have been registered successfully");
     setFullname("");

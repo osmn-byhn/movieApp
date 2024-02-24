@@ -21,6 +21,22 @@ const commentSchema = new mongoose.Schema({
     }
 });
 
+const savedSchema = new mongoose.Schema({
+    movieId: {
+        type: String,
+        required: true
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    savedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
 const userSchema = new mongoose.Schema({
     fullName: {
         type: String,
@@ -71,6 +87,7 @@ const userSchema = new mongoose.Schema({
         default: false
     },
     verificationToken: String,
+    savedMovies: [savedSchema],
     comments: [commentSchema]  // Yorumları temsil etmek için commentSchema'yi ekleyin
 });
 

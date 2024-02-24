@@ -214,25 +214,7 @@ app.post("/users/unfollow", async (req, res) => {
   }
 });
 
-app.post("/create-post", async(req, res) => {
-  try {
-    const {content, userId} = req.body;
-    const decodedUserId = jwt.verify(userId, secretKey);
-    const newPostData = {
-      user: decodedUserId.userId,
-    }
-    console.log(decodedUserId.userId);
-    if (content) {
-      newPostData.content = content;
-    }
-    const newPost = new Post(newPostData)
-    await newPost.save();
-    res.status(200).json({message: "Post saved successfully"})
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({message: "post creation failed"})
-  }
-})
+
 
 
 app.put("/posts/:postId/:userId/like", async(req, res) => {
