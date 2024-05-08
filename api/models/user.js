@@ -34,6 +34,10 @@ const savedSchema = new mongoose.Schema({
     savedAt: {
         type: Date,
         default: Date.now
+    },
+    isWatched : {
+        type: Boolean,
+        default: false
     }
 });
 

@@ -3,8 +3,9 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 const ForgotPasswordScreen = () => {
-  
+  const navigation = useNavigation()
   return (
+    
     <ImageBackground source={require('../assets/clapperboard.jpg')} style={styles.backgroundImage} blurRadius={4}>
       <StatusBar backgroundColor="#ff0000" barStyle="light-content" />
       <View style={styles.overlay}>

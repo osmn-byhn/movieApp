@@ -14,6 +14,7 @@ import { Entypo, AntDesign, Ionicons, FontAwesome  } from '@expo/vector-icons';
 const StackNavigator = () => {
   const Tab = createBottomTabNavigator();
   const Stack = createNativeStackNavigator();
+  
   function BottomTabs() {
     return (
       <Tab.Navigator

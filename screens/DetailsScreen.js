@@ -2,10 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Alert, ScrollView, Modal } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import axios from 'axios';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const DetailsScreen = () => {
+  const genreMapping = {
+    28: 'Action',
+    12: 'Adventure',
+    16: 'Animation',
+    35: 'Comedy',
+    80: 'Crime',
+    99: 'Documentary',
+    18: 'Drama',
+    10751: 'Family',
+    14: 'Fantasy',
+    36: 'History',
+    27: 'Horror',
+    10749: 'Romance',
+    878: 'Science Fiction',
+    10770: 'TV Movie',
+    53: 'Thriller',
+    10752: 'War',
+    37: 'Western',
+    9648: 'Mystery',
+    10402: 'Music'
+  };
   const route = useRoute();
   const { movieId } = route.params;
   const [movieDetails, setMovieDetails] = useState(null);
@@ -37,10 +58,10 @@ const DetailsScreen = () => {
           <>
             <View style={{flexDirection: "row", justifyContent: "space-between"}}>
               <View style={{ gap: 15, flexDirection: "row" }}>
-                <Ionicons name="arrow-back-sharp" size={24} color="white" onPress={goToBack} />
+                <Ionicons name="arrow-back-sharp" size={24} style={{marginTop: 2}} color="white" onPress={goToBack} />
                 <Text style={{fontSize: 20, fontWeight: "700", color: 'white' }}>{movieDetails.title}</Text>
               </View>
-              <FontAwesome name="bookmark" size={24} color="white" style={{marginRight: 15}} />
+              <Feather name="bookmark" size={24} color="white" style={{marginRight: 15, marginTop: 5}} />
             </View>
             <View style={{marginTop: 25}}>
               {movieDetails.poster_path ? (
@@ -53,6 +74,12 @@ const DetailsScreen = () => {
               )}
             </View>
             <Text style={{fontSize: 16, color: "white", width: "90%", marginLeft: "5%", marginTop: 15}}>{movieDetails.overview}</Text>
+            {movieDetails?.genre_ids?.map((genreId) => (
+              <Text key={genreId}>{genreMapping[genreId]}</Text>
+            ))}
+
+            <Text>{movieDetails.genre_ids}</Text>
+
           </>
         ) : (
           <Text>Loading...</Text>

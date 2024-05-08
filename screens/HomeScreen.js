@@ -50,7 +50,7 @@ const HomeScreen = () => {
       try {
         const token = await AsyncStorage.getItem("authToken");
         setUserId(token);
-        const response = await axios.get(`http://192.168.41.159:3000/decode/${token}`);
+        const response = await axios.get(`http://192.168.198.159:3000/decode/${token}`);
         setSoftId(response.data);
         setFullname(softId)
         console.log("softId: ", softId);
@@ -63,7 +63,7 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`http://192.168.41.159:3000/profile/${userId}`);
+        const response = await axios.get(`http://192.168.198.159:3000/profile/${userId}`);
         const userData = response.data;
         setFullname(userData.fullName);
         console.log(fullName);

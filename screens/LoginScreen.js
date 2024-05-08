@@ -30,7 +30,7 @@ const LoginScreen = () => {
       password: password
     };
     try {
-      const response = await axios.post("http://192.168.41.159:3000/login", user);
+      const response = await axios.post("http://192.168.198.159:3000/login", user);
       console.log(response);
       const token = response.data.token;
       AsyncStorage.setItem("authToken", token)
