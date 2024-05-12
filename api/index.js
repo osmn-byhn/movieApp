@@ -38,18 +38,38 @@ app.post("/register", async (req, res) => {
     if (existingUsername) {
       return res.status(400).json({ message: "Username already registered" })
     }
-    
+
     const newUser = new User({ fullName, username, email, password, profilePicture });
     console.log("username: ", newUser);
     newUser.verificationToken = crypto.randomBytes(20).toString("hex")
+    newUser.verificationCode = crypto.randomBytes(20).toString("hex")
     await newUser.save();
-    sendVerificationEmail(newUser.email, newUser.verificationToken)
+    sendVerificationEmail(newUser.email, newUser.verificationToken, 'verify')
     res.status(200).json({ message: "Registeration successful, please check your email for vertification" })
   } catch (error) {
     console.log("error registering user", error);
     res.status(500).json({ message: "error registering user" })
   }
 })
+
+app.post("/setting-code", async (req, res) => {
+  const { email } = req.body;
+  const existingUser = await User.findOne({ email })
+  console.log("existingUser: ", existingUser)
+  if (!existingUser) {
+    return res.status(400).json({ status: "fail", message: "Email not found!" });
+  }
+  try {
+    sendVerificationEmail(email, existingUser.verificationCode, 'reset-password')
+    //existingUser.verificationCode = crypto.randomBytes(20).toString("hex")
+    res.status(200).json({ status: "success", message: "Link sending successfully, please check your email for reset password" })
+
+  } catch (error) {
+    console.log("ERROR: ", error);
+    res.status(500).json({ status: "fail", message: "A catch error while sending reset link to mail" })
+  }
+});
+
 
 
 app.put("/edit-profile/:userId", async (req, res) => {
@@ -82,7 +102,7 @@ app.put("/edit-profile/:userId", async (req, res) => {
   }
 });
 
-const sendVerificationEmail = async (email, verificationToken) => {
+const sendVerificationEmail = async (email, verificationToken, type) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -91,17 +111,27 @@ const sendVerificationEmail = async (email, verificationToken) => {
     },
   });
 
+  let message = '';
+
+  if (type === "verify") {
+    message = `Please click the following link to verify your email http://localhost:3000/verify/${verificationToken}`;
+  }
+  else if (type === "reset-password") {
+    message = `Please click the following link to verify your email http://localhost:3000/reset-password/${verificationToken}`;
+  }
+
   const mailOptions = {
-    from: "threads.com",
+    from: "osmanbeyhan12@gmail.com",
     to: email,
     subject: "Email Verification",
-    text: `Please click the following link to verify your email https://threads-backend-c6ms.onrender.com/verify/${verificationToken}`,
+    text: message,
   };
 
   try {
     await transporter.sendMail(mailOptions);
   } catch (error) {
     console.log("error sending email", error);
+    //res.status(500).send(error)
   }
 };
 
@@ -114,31 +144,82 @@ app.get("/verify/:token", async (req, res) => {
     }
 
     user.verified = true;
-    user.verificationToken = undefined
+    //user.verificationToken = undefined
     await user.save()
 
-    res.status(200).json({ message: "Email verified successfully" })
+    res.send(`
+      <html>
+        <head>
+          <title>Email Verification</title>
+        </head>
+        <body>
+          <h1>Email Verification</h1>
+          <p>Your email has been verified successfully!</p>
+        </body>
+      </html>
+    `);
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: "Email vertification failed" })
   }
 })
 
-app.post("/login", async(req, res) => {
+app.get("/reset-password/:token", async (req, res) => {
   try {
-    const {email, password} = req.body;
-    const user = await User.findOne({email: email});
+    const token = req.params.token;
+    const user = await User.findOne({ verificationCode: token });
     if (!user) {
-      return res.status(404).json({message: "Invalid email"})
+      return res.status(404).json({ message: "Invalid token" })
     }
-    if (user.password !== password) {
-      return res.status(404).json({message: "Invalid password"})
-    }
-    const token = jwt.sign({userId: user._id}, secretKey)
-    res.status(200).json({token})
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "Error while login post"})
+    res.status(500).send({ message: "Email vertification failed" })
+  }
+});
+
+
+app.post("/change-password/:token", async (req, res) => {
+  const token = req.params.token;
+  const { password } = req.body;
+  const user = await User.findOne({ verificationCode: token });
+
+  try {
+    if (!user) {
+      return res.status(404).json({ message: "Invalid token" });
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { 
+        password: password,
+        verificationCode: crypto.randomBytes(20).toString("hex")
+      },
+      { new: true } // Güncellenmiş belgeyi döndürmek için { new: true } seçeneğini kullanın
+    );
+    res.status(200).send({ message: `Password successfully changed!` });
+  } catch (error) {
+    res.status(500).send({ message: `Password change failed: ${error}` });
+  }
+
+});
+
+
+
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({ message: "Invalid email" })
+    }
+    if (user.password !== password) {
+      return res.status(404).json({ message: "Invalid password" })
+    }
+    const token = jwt.sign({ userId: user._id }, secretKey)
+    res.status(200).json({ token })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error while login post" })
   }
 })
 
@@ -152,7 +233,7 @@ app.get("/user/:userId", (req, res) => {
         return res.status(400).json({ message: "Invalid token" });
       }
       const userId = decoded.userId;
-      User.find({  _id: { $ne: userId }  })
+      User.find({ _id: { $ne: userId } })
         .then((users) => {
           console.log(users);
           res.status(200).json(users);
@@ -217,70 +298,70 @@ app.post("/users/unfollow", async (req, res) => {
 
 
 
-app.put("/posts/:postId/:userId/like", async(req, res) => {
+app.put("/posts/:postId/:userId/like", async (req, res) => {
   try {
     const postId = req.params.postId
     const userId = req.params.userId
     const decodedUserId = jwt.verify(userId, secretKey);
     const post = await Post.findById(postId).populate("user", "fullName username profilePicture")
-    const updatedPost = await Post.findByIdAndUpdate( 
+    const updatedPost = await Post.findByIdAndUpdate(
       postId,
-      {$addToSet: {likes: decodedUserId.userId}},
-      {new: true}
+      { $addToSet: { likes: decodedUserId.userId } },
+      { new: true }
     )
     updatedPost.user = post.user;
-    if(!updatedPost) {
-      return res.status(404).json({message: "post not found"})
+    if (!updatedPost) {
+      return res.status(404).json({ message: "post not found" })
     }
     res.json(updatedPost);
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "an error occurred while liking"})
+    res.status(500).json({ message: "an error occurred while liking" })
   }
 })
 
 
-app.put("/posts/:postId/:userId/unlike", async(req, res) => {
+app.put("/posts/:postId/:userId/unlike", async (req, res) => {
   try {
     const postId = req.params.postId
     const userId = req.params.userId
     const decodedUserId = jwt.verify(userId, secretKey);
     const post = await Post.findById(postId).populate("user", "fullName username profilePicture")
-    const updatedPost = await Post.findByIdAndUpdate( 
+    const updatedPost = await Post.findByIdAndUpdate(
       postId,
-      {$pull: {likes: decodedUserId.userId}},
-      {new: true}
+      { $pull: { likes: decodedUserId.userId } },
+      { new: true }
     )
     updatedPost.user = post.user;
-    if(!updatedPost) {
-      return res.status(404).json({message: "post not found"})
+    if (!updatedPost) {
+      return res.status(404).json({ message: "post not found" })
     }
     res.json(updatedPost);
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "an error occurred while liking"})
+    res.status(500).json({ message: "an error occurred while liking" })
   }
 })
 
 
-app.get("/get-posts", async(req, res) => {
+app.get("/get-posts", async (req, res) => {
   try {
-    const posts = await Post.find().populate("user", "fullName username profilePicture").sort({createdAt: -1});
+    const posts = await Post.find().populate("user", "fullName username profilePicture").sort({ createdAt: -1 });
     res.status(200).json(posts)
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "An error occurred while getting the posts"})
+    res.status(500).json({ message: "An error occurred while getting the posts" })
   }
 })
 
-app.get("/decode/:userId", async(req, res) => {
+app.get("/decode/:userId", async (req, res) => {
   try {
     const userId = req.params.userId
     const decodedUserId = jwt.verify(userId, secretKey);
     res.status(200).json(decodedUserId.userId)
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "An error occurred while decoding token to id"})
+    res.status(500).json({ message: "An error occurred while decoding token to id" })
   }
 })
 
@@ -290,7 +371,7 @@ app.get("/profile/:userId", async (req, res) => {
     const userId = req.params.userId;
     const decodedUserId = await jwt.verify(userId, secretKey);
     const user = await User.findById(decodedUserId.userId);
-    console.log("user: ",user);
+    console.log("user: ", user);
     res.status(200).json(user);
   } catch (error) {
     console.log(error);
@@ -302,7 +383,7 @@ app.get("/posts/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
     const decodedUserId = await jwt.verify(userId, secretKey);
-    const posts = await Post.find({user: decodedUserId.userId}).populate("user", "fullName username profilePicture").sort({createdAt: -1})
+    const posts = await Post.find({ user: decodedUserId.userId }).populate("user", "fullName username profilePicture").sort({ createdAt: -1 })
     console.log(posts);
     res.status(200).json(posts)
   } catch (error) {
@@ -321,20 +402,20 @@ app.post("/post-replies/:postId/:userId", async (req, res) => {
       user: decodedUserId.userId
     }
     const post = await Post.findById(postId).populate("user", "fullName username profilePicture")
-    const updatedPost = await Post.findByIdAndUpdate( 
+    const updatedPost = await Post.findByIdAndUpdate(
       postId,
-      {$addToSet: {replies: data}},
-      {new: true}
+      { $addToSet: { replies: data } },
+      { new: true }
     )
     updatedPost.user = post.user;
     console.log("successfully reply");
-    if(!updatedPost) {
-      return res.status(404).json({message: "post not found"})
+    if (!updatedPost) {
+      return res.status(404).json({ message: "post not found" })
     }
     res.json(updatedPost);
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "an error occurred while repling"})
+    res.status(500).json({ message: "an error occurred while repling" })
   }
 })
 

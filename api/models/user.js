@@ -92,7 +92,8 @@ const userSchema = new mongoose.Schema({
     },
     verificationToken: String,
     savedMovies: [savedSchema],
-    comments: [commentSchema]  // Yorumları temsil etmek için commentSchema'yi ekleyin
+    comments: [commentSchema],
+    verificationCode: String
 });
 
 const User = mongoose.model("User", userSchema);
