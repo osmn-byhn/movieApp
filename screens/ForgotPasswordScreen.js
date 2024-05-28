@@ -6,13 +6,12 @@ import { useNavigation } from '@react-navigation/native';
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState("")
   const navigation = useNavigation()
-
   const sendLink = async () => {
     const user = {
       email: email
     };
     try {
-      const response = await axios.post("http://192.168.93.159:3000/setting-code", user);
+      const response = await axios.post("http://192.168.75.159:3000/setting-code", user);
       console.log(response);
       const token = response.data.token;
       Alert.alert("Check your mail for reset password link");
