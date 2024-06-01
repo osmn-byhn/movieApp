@@ -1,3 +1,4 @@
+import { API_KEY, BASE_URL, SERVER } from '@env';
 import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Alert, ScrollView, Modal } from 'react-native';
 import { AntDesign, FontAwesome  } from '@expo/vector-icons';
 import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
@@ -6,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserType } from "../UserContext";
 import { SliderBox } from 'react-native-image-slider-box'
 import Movies from '../components/Movies';
-
+import jwt_decode from "jwt-decode";
 
 const HomeScreen = () => {
   const [movies, setMovies] = useState([]);
@@ -17,15 +18,29 @@ const HomeScreen = () => {
   const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [movieName, setMovieName] = useState("")
   const [searchResults, setSearchResults] = useState([]);
+  const [username, setUsername] = useState('');
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        const decodedToken = jwt_decode(token);
+        
+        console.log("<USERNAME:", decodedToken)
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
   useEffect(() => {
     // TMDb API'dan popüler filmleri çekmek için istek yapma
     const fetchMovies = async () => {
       try {
         const response = await axios.get(
-          `https://api.themoviedb.org/3/movie/popular?api_key=e3cb52fd70afa367f679dfcf6033d0da&language=en-US&page=1`
+          `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`
         );
         setMovies(response.data.results);
-        console.log('movies: ', movies);
       } catch (error) {
         console.error('Error fetching movies:', error);
       }
@@ -34,39 +49,23 @@ const HomeScreen = () => {
     const fetchNewMovies = async () => {
       try {
         const response = await axios.get(
-          `https://api.themoviedb.org/3/movie/now_playing?api_key=e3cb52fd70afa367f679dfcf6033d0da&language=en-US&page=1`
+          `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1`
         );
 
         setNewMovies(response.data.results);
-        console.log('new Movies: ', newMovies);
       } catch (error) {
         console.error('Error fetching new movies:', error);
       }
     };
     fetchNewMovies();
   }, []);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        setUserId(token);
-        const response = await axios.get(`http://192.168.75.159:3000/decode/${token}`);
-        setSoftId(response.data);
-        setFullname(softId)
-        console.log("softId: ", softId);
-      } catch (error) {
-        console.log("Error fetching user data: ", error);
-      }
-    };
-    fetchData();
-  }, [userId]);
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`http://192.168.75.159:3000/profile/${userId}`);
+        const response = await axios.get(`${SERVER}profile/${userId}`);
         const userData = response.data;
         setFullname(userData.fullName);
-        console.log(fullName);
+        console.log("FULLANAME:N    ", fullName);
       } catch (error) {
         console.error('Error fetching user:', error);
       }
@@ -74,7 +73,7 @@ const HomeScreen = () => {
     if (userId) {
       fetchUser();
     }
-  }, [userId]);
+  }, [userId]);*/
   const handleSearchIconPress = () => {
     setSearchModalVisible(true);
   };
@@ -85,7 +84,7 @@ const HomeScreen = () => {
   const handleSearch = async () => {
     try {
       const response = await axios.get(
-        `https://api.themoviedb.org/3/search/movie?api_key=e3cb52fd70afa367f679dfcf6033d0da&query=${movieName}`
+        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${movieName}`
       );
       setSearchResults(response.data.results);
       console.log('Search results: ', searchResults);
@@ -100,7 +99,7 @@ const HomeScreen = () => {
       <StatusBar backgroundColor="#ff0000" barStyle="light-content" />
       <ScrollView>
           <View style={{padding: 15, flexDirection: 'row', justifyContent: 'space-between'}}>
-            <Text style={{color: 'white', fontSize: 23, fontWeight: '600', width: '75%'}}>Hello {fullName}!</Text>
+            <Text style={{color: 'white', fontSize: 23, fontWeight: '600', width: '75%'}}>Hello {username}!</Text>
             <View style={{flexDirection: 'row', gap: 15}}>
               <AntDesign name="filter" size={26} color="white" />
               <FontAwesome name="search" size={26} color="white" onPress={handleSearchIconPress} />
@@ -147,7 +146,7 @@ const HomeScreen = () => {
                 onChangeText={(text) => setMovieName(text)}
                 placeholder='Enter movie name'
                 placeholderTextColor='white'
-                style={{ padding: 15, paddingHorizontal: 100, paddingLeft: 1, color: 'white', fontSize: 17 }}
+                style={{ padding: 10, paddingHorizontal: 100, paddingLeft: 1, color: 'white', fontSize: 17,  }}
                 onSubmitEditing={handleSearch} // Add this line to trigger search on submit
               />
               <Pressable onPress={handleCloseModal} style={{ marginRight: 15, marginTop: 15 }}>
@@ -206,6 +205,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
 });

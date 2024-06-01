@@ -1,3 +1,4 @@
+import { API_KEY, BASE_URL, SERVER } from '@env';
 import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Alert } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react'
@@ -30,7 +31,7 @@ const LoginScreen = () => {
       password: password
     };
     try {
-      const response = await axios.post("http://192.168.75.159:3000/user/login", user);
+      const response = await axios.post(`${SERVER}user/login`, user);
       console.log(response);
       const token = response.data.token;
       AsyncStorage.setItem("authToken", token)

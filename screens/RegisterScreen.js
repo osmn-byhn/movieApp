@@ -1,3 +1,4 @@
+import { API_KEY, BASE_URL, SERVER } from '@env';
 import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Dimensions, Alert } from 'react-native';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
@@ -52,7 +53,8 @@ const handleRegister = async () => {
   };
   console.log(base64Value);
   try {
-    const response = await axios.post("http://192.168.75.159:3000/register", user);
+    console.log("SERVER: ", SERVER)
+    const response = await axios.post(`${SERVER}user/register`, user);
     console.log(response);
     Alert.alert("Registration successful. You have been registered successfully");
     setFullname("");

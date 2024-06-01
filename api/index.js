@@ -11,6 +11,7 @@ const multer = require('multer');
 const path = require('path');
 const userRoute = require("./routes/userRoute")
 const app = express();
+const User = require('./models/user')
 dotenv.config();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));

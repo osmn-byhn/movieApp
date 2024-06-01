@@ -24,7 +24,6 @@ const Movies = () => {
       );
 
       const genreName = genreDetails.data.name;
-      console.log(`Movies for ${genreName}: `, response.data.results);
 
       // Eğer bu genreId zaten genres state'inde varsa, eklemeyi geç
       if (!genres.some((existingGenre) => existingGenre.id === genreId)) {
@@ -62,7 +61,7 @@ const Movies = () => {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingRight: 10, marginRight: -10, marginVertical: 15  }}>
             {genre?.movies?.map((movie, index) => (
               <TouchableOpacity onPress={() => goToDetails(movie.id)} style={{ marginRight: 20 }}>
-                <View key={index} onPress={goToDetails(movie.id)}>
+                <View key={index}>
                   {movie.poster_path ? (
                     <Image
                       source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}

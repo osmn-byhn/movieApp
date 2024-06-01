@@ -1,45 +1,7 @@
 const mongoose = require('mongoose');
-
-const commentSchema = new mongoose.Schema({
-    text: {
-        type: String,
-        required: true
-    },
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
-    MovieId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Movie",
-        required: true
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-const savedSchema = new mongoose.Schema({
-    movieId: {
-        type: String,
-        required: true
-    },
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
-    savedAt: {
-        type: Date,
-        default: Date.now
-    },
-    isWatched : {
-        type: Boolean,
-        default: false
-    }
-});
+const Saved = require('./Saved');
+const Post = require('./Post');
+const Comment = require('./Comment');
 
 const userSchema = new mongoose.Schema({
     fullName: {
@@ -58,7 +20,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: true
     },
     profilePicture: {
         type: String,
@@ -91,11 +53,10 @@ const userSchema = new mongoose.Schema({
         default: false
     },
     verificationToken: String,
-    savedMovies: [savedSchema],
-    comments: [commentSchema],
+    savedMovies: [Saved.schema],
+    userPost: [Post.schema],
+    comments: [Comment.schema],
     verificationCode: String
 });
 
-const User = mongoose.model("User", userSchema);
-
-module.exports = User;
+module.exports = mongoose.model("User", userSchema);

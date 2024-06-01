@@ -1,3 +1,4 @@
+import { API_KEY, BASE_URL, SERVER } from '@env';
 import React, { useEffect, useState } from 'react';
 import { ImageBackground, StyleSheet, Text, View, Image, TextInput, Pressable, StatusBar, Alert, ScrollView, Modal } from 'react-native';
 import { useRoute } from '@react-navigation/native';
@@ -36,7 +37,7 @@ const DetailsScreen = () => {
     const getDetails = async () => {
       try {
         const response = await axios.get(
-          `https://api.themoviedb.org/3/movie/${movieId}?api_key=e3cb52fd70afa367f679dfcf6033d0da`
+          `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`
         );
         setMovieDetails(response.data);
       } catch (error) {

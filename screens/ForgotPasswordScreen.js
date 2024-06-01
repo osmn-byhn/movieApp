@@ -11,7 +11,7 @@ const ForgotPasswordScreen = () => {
       email: email
     };
     try {
-      const response = await axios.post("http://192.168.75.159:3000/setting-code", user);
+      const response = await axios.post(`${SERVER}user/setting-code`, user);
       console.log(response);
       const token = response.data.token;
       Alert.alert("Check your mail for reset password link");

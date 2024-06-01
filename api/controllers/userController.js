@@ -1,4 +1,5 @@
 const express = require('express')
+const User = require('../models/user')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const crypto = require('crypto')
@@ -10,7 +11,6 @@ const { GridFsStorage } = require('multer-gridfs-storage');
 const multer = require('multer');
 const path = require('path');
 const app = express();
-const User = require("../models/user")
 const secretKey = "secretKey"
 
 const sendVerificationEmail = async (email, verificationToken, type) => {
@@ -124,29 +124,22 @@ exports.verifyToken = async (req, res) => {
         const token = req.params.token;
         const user = await User.findOne({ verificationToken: token });
         if (!user) {
-            return res.status(404).json({ message: "Invalid token" })
+            return res.status(404).json({ message: "Invalid token" });
         }
 
         user.verified = true;
-        //user.verificationToken = undefined
-        await user.save()
+        // user.verificationToken = undefined
+        await user.save();
 
-        res.send(`
-          <html>
-            <head>
-              <title>Email Verification</title>
-            </head>
-            <body>
-              <h1>Email Verification</h1>
-              <p>Your email has been verified successfully!</p>
-            </body>
-          </html>
-        `);
+        const filePath = path.join(__dirname, '..', 'views', 'verification.html');
+        console.log(filePath);
+        res.sendFile(filePath);
     } catch (error) {
         console.log(error);
-        res.status(500).send({ message: "Email vertification failed" })
+        res.status(500).send({ message: "Email verification failed" });
     }
 }
+
 
 exports.resetPasswords = async (req, res) => {
     try {
@@ -195,7 +188,8 @@ exports.login = async (req, res) => {
         if (user.password !== password) {
             return res.status(404).json({ message: "Invalid password" })
         }
-        const token = jwt.sign({ userId: user._id }, secretKey)
+        const token = jwt.sign({ userId: user._id, userName: user.fullName }, secretKey)
+        console.log("Lgin success");
         res.status(200).json({ token })
     } catch (error) {
         console.log(error);
